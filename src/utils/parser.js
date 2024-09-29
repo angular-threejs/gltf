@@ -5,6 +5,7 @@ function parse(fileName, gltf, options = {}) {
   const url = fileName;
   const animations = gltf.animations;
   const hasAnimations = animations.length > 0;
+  const selector = `app-${options.selector ?? "model"}`;
 
   // Collect all objects
   const objects = [];
@@ -569,7 +570,7 @@ ${options.preload ? `injectGLTF.preload(() => ${url})` : ""}
 ${printTypes(objects, animations)}
 
 @Component({
-    selector: 'app-model',
+    selector: '${selector}',
     template: \`
         @if (gltf();as gltf) {
             <ngt-group #model [parameters]="options()">
@@ -591,8 +592,8 @@ export class Model {
     protected readonly Math = Math;
 
     options = input({} as Partial<NgtGroup>);
-    modelRef = viewChild<ElementRef<Group>>('model');
     ${hasAnimations ? "animations = model<any>();" : ""}
+    modelRef = viewChild<ElementRef<Group>>('model');
     
     protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<GLTFResult | null>;
     ${
