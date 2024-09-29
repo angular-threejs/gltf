@@ -109,7 +109,7 @@ function parse(fileName, gltf, options = {}) {
       );
     }
 
-    types.push(`type GLTFResult = {
+    types.push(`type GLTFResult = GLTF & {
     nodes: {
       ${meshes
         .map(
@@ -546,9 +546,10 @@ function parse(fileName, gltf, options = {}) {
   const imports = `
 	    import type * as THREE from 'three'
         import { Group } from 'three'
-        import { NgtGroup, NgtObjectEventsHostDirective${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
+        import { NgtGroup, NgtObjectEvents, NgtObjectEventsHostDirective${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
         import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, computed, viewChild, ElementRef, inject, effect${hasAnimations ? ", model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
+        import { GLTF } from 'three-stdlib';
         ${hasAnimations ? "import { injectAnimations } from 'angular-three-soba/misc';" : ""}
 	`;
 
@@ -587,11 +588,13 @@ ${printTypes(objects, animations)}
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Model {
+    protected readonly Math = Math;
+
     options = input({} as Partial<NgtGroup>);
     modelRef = viewChild<ElementRef<Group>>('model');
     ${hasAnimations ? "animations = model<any>();" : ""}
     
-    protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as Signal<GLTFResult | null>;
+    protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<GLTFResult | null>;
     ${
       hasAnimations
         ? `
@@ -604,7 +607,7 @@ export class Model {
     }
     
     
-    private objectEvents = inject(NgtObjectEventsHostDirective, { host: true });
+    private objectEvents = inject(NgtObjectEvents, { host: true });
     
     constructor() {
         ${
