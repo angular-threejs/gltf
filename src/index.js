@@ -24,8 +24,6 @@ function toArrayBuffer(buf) {
 }
 
 export default function (file, output, options) {
-  console.log(output);
-
   function getFilePath(file) {
     return `${options.root ?? "/"}${options.root ? path.basename(file) : path.normalize(file)}`;
   }
