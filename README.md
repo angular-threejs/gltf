@@ -1,35 +1,14 @@
 <div align="right">
- <a href="https://www.npmjs.com/package/@threlte/gltf">
-  <img alt="npm" src="https://img.shields.io/npm/v/@threlte/gltf?color=fe4100&labelColor=171d27&logo=npm&logoColor=white"/>
- </a>
- <a href="https://github.com/threlte/threlte/blob/main/LICENSE.md">
-  <img alt="license" src="https://img.shields.io/npm/l/@threlte/core?color=fe4100&labelColor=171d27&logo=git&logoColor=white"/>
- </a>
- <a href="https://discord.com/channels/985983540804091964">
-  <img alt="discord" src="https://img.shields.io/discord/985983540804091964?label=discord&color=fe4100&labelColor=171d27&logo=discord&logoColor=white"/>
- </a>
- <a href="https://threlte.xyz">
-  <img alt="docs" src="https://img.shields.io/website?down_color=red&down_message=offline&label=docs&color=fe4100&labelColor=171d27&up_message=online&url=https%3A%2F%2Fthrelte.xyz&logo=svelte&logoColor=white"/>
+ <a href="https://www.npmjs.com/package/angular-three-gltf">
+    <img alt="NPM Version" src="https://img.shields.io/npm/v/angular-three-gltf?style=flat&logo=npm&logoColor=white">
  </a>
 </div>
 
-<a href="https://threlte.xyz">
- <img src="https://threlte.xyz/logo/threlte-banner.jpg"/>
-</a>
+## `angular-three-gltf`
 
-## Rapidly Build Interactive 3D Apps for the Web
+[angular-three-gltf](TBD) gives you a CLI to that turn GLTF assets into declarative and reusable Angular Three components.
 
-Threlte is a [Svelte](https://svelte.dev/) library that simplifies creating 3D apps for the web. It provides a **declarative**, **type-safe**, **reactive** and **interactive** API out-of-the-box.
-
-Threlte's **3D rendering** is powered by [Three.js](https://threejs.org/), and it also provides a **physics engine** through [Rapier](https://rapier.rs/) and an **animation studio** via [Theatre.js](https://www.theatrejs.com/); see [packages](#packages) for details.
-
-Check out our **[documentation](https://threlte.xyz)** and our **[Discord community](https://discord.gg/EqUBCfCaGm)**.
-
-## @threlte/gltf
-
-[@threlte/gltf](https://threlte.xyz/docs/reference/gltf/getting-started) gives you a CLI to that turn GLTF assets into declarative and reusable Threlte components.
-
-This helps with performance optimization for asset-heavy Threlte apps. It also allows you to modify your GLTF assets as Svelte components, instead of working with 3D software like Blender.
+This helps with performance optimization for asset-heavy Angular Three apps. It also allows you to modify your GLTF assets as Angular components, instead of working with 3D software like Blender.
 
 ### Motivation
 
@@ -42,7 +21,7 @@ This helps with performance optimization for asset-heavy Threlte apps. It also a
 - Model compression is complex and not easily achieved
 - Models often have unnecessary nodes that cause extra work and matrix updates
 
-#### @threlte/gltf fixes that
+#### `angular-three-gltf` fixes that
 
 - 🧑‍💻 It creates a virtual graph of all objects and materials. Now you can easily alter contents and re-use.
 - 🏎️ The graph gets pruned (empty groups, unnecessary transforms, ...) and will perform better.
@@ -52,11 +31,10 @@ This helps with performance optimization for asset-heavy Threlte apps. It also a
 
 ```bash
 Usage
-  $ npx @threlte/gltf@latest [Model.glb] [options]
+  $ npx angular-three-gltf@latest [Model.glb] [options]
 
 Options
   --output, -o        Output file name/path
-  --types, -t         Add Typescript definitions
   --keepnames, -k     Keep original names
   --keepgroups, -K    Keep (empty) groups, disable pruning
   --meta, -m          Include metadata (as userData)
@@ -64,9 +42,7 @@ Options
   --printwidth, -w    Prettier printWidth (default: 120)
   --precision, -p     Number of fractional digits (default: 2)
   --draco, -d         Draco binary path
-  --preload -P        Add preload method to module script
   --suspense -u       Make the component suspense-ready
-  --isolated, -i      Output as isolated module (No $$restProps usage)
   --root, -r          Sets directory from which .gltf file is served
   --transform, -T     Transform the asset for the web (draco, prune, resize)
     --resolution, -R  Transform resolution for texture resizing (default: 1024)
@@ -80,60 +56,15 @@ Options
 ### Requirements
 
 - NodeJS must be installed
-- The GLTF file has to be present in your projects `/public` folder
-- [three](https://github.com/mrdoob/three.js/) (>= 122.x)
-- @threlte/core > 5.0.0
-- @threlte/core > 4.9.3
-
-### Support
-
-Have questions? Feel free to ask in our [Discord support forum](https://discord.com/channels/985983540804091964/1031843197963477002).
-
+- [three](https://github.com/mrdoob/three.js/) (>= 148.x)
+- angular-three > 2.0.0
+ 
 ### A typical use-case
 
-First you run your model through `@threlte/gltf`. `npx` allows you to use npm packages without installing them.
+First you run your model through `angular-three-gltf`. `npx` allows you to use npm packages without installing them.
 
 ```bash
-npx @threlte/gltf@latest model.gltf --transform
-```
-
-This will create a `Model.svelte` file that plots out all of the assets contents.
-
-```svelte
-<!--
-Auto-generated by: https://github.com/pmndrs/gltfjsx
-Command: npx gltfjsx@0.0.1 ./stacy.glb
--->
-<script>
-  import { Group } from 'three'
-  import { T } from '@threlte/core'
-  import { useGltf, useGltfAnimations } from '@threlte/extras'
-
-  export const ref = new Group()
-
-  const gltf = useGltf('/stacy.glb')
-  export const { actions, mixer } = useGltfAnimations(gltf, ref)
-</script>
-
-{#if $gltf}
-  <T is={ref} {...$$restProps}>
-    <T.Group name="Scene">
-      <T.Group name="Stacy" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-        <T is={$gltf.nodes.mixamorigHips} />
-        <T.SkinnedMesh
-          name="stacy"
-          geometry={$gltf.nodes.stacy.geometry}
-          material={$gltf.nodes.stacy.material}
-          skeleton={$gltf.nodes.stacy.skeleton}
-          rotation={[-Math.PI / 2, 0, 0]}
-          scale={100}
-        />
-      </T.Group>
-    </T.Group>
-
-    <slot {ref} />
-  </T>
-{/if}
+npx angular-three-gltf@latest model.gltf --transform
 ```
 
 Add your model to your `/public` folder as you would normally do. With the `--transform` flag it has created a compressed copy of it (in the above case `model-transformed.glb`). Without the flag just copy the original model.
@@ -193,7 +124,7 @@ You don't need to do anything if your models are draco compressed, since `useGlt
 
 #### ⚡️ Auto-transform (compression, resize)
 
-With the `--transform` flag it creates a binary-packed, draco-compressed, texture-resized (1024x1024), webp compressed, deduped, instanced and pruned *.glb ready to be consumed on a web site. It uses [glTF-Transform](https://github.com/donmccurdy/glTF-Transform). This can reduce the size of an asset by 70%-90%.
+With the `--transform` flag it creates a binary-packed, draco-compressed, texture-resized (1024x1024), webp compressed, deduped, instanced and pruned \*.glb ready to be consumed on a web site. It uses [glTF-Transform](https://github.com/donmccurdy/glTF-Transform). This can reduce the size of an asset by 70%-90%.
 
 It will not alter the original but create a copy and append `[modelname]-transformed.glb`.
 
@@ -265,38 +196,25 @@ If you want to play an animation you can do so at any time:
 
 ```ts
 const onEvent = () => {
-  $actions.jump.play()
-}
+  $actions.jump.play();
+};
 ```
 
 ## Using the parser stand-alone
 
 ```jsx
-import { parse } from '@threlte/gltf'
-import { GLTFLoader, DRACOLoader } from 'three-stdlib'
+import { parse } from "@threlte/gltf";
+import { GLTFLoader, DRACOLoader } from "three-stdlib";
 
-const gltfLoader = new GLTFLoader()
-const dracoloader = new DRACOLoader()
-dracoloader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
-gltfLoader.setDRACOLoader(dracoloader)
+const gltfLoader = new GLTFLoader();
+const dracoloader = new DRACOLoader();
+dracoloader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+gltfLoader.setDRACOLoader(dracoloader);
 
 gltfLoader.load(url, (gltf) => {
-  const component = parse(filename, gltf, config)
-})
+  const component = parse(filename, gltf, config);
+});
 ```
-
-
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-- **Filing Issues** - if you have feature requestions or you think you spotted a bug, [submit an issue](https://github.com/threlte/threlte/issues/new).
-- **Contributing Code** - if you would like to drop us a PR, read the [contribution guide](https://github.com/threlte/threlte/blob/main/CONTRIBUTING.md) first.
-
-## Sponsors
-
-[![Powered by Vercel](./assets/vercel/powered-by-vercel.svg)](https://vercel.com/?utm_source=threlte&utm_campaign=oss)
-
 ---
 
 ### License
