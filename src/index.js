@@ -24,6 +24,8 @@ function toArrayBuffer(buf) {
 }
 
 export default function (file, output, options) {
+  console.log(output);
+
   function getFilePath(file) {
     return `${options.root ?? "/"}${options.root ? path.basename(file) : path.normalize(file)}`;
   }
@@ -50,15 +52,15 @@ export default function (file, output, options) {
         gltfLoader.parse(
           arrayBuffer,
           "",
-          (gltf) => {
+          async (gltf) => {
             const raw = parse(filePath, gltf, options);
             try {
-              const prettiered = prettier.format(raw, {
+              const prettiered = await prettier.format(raw, {
                 semi: false,
                 bracketSameLine: true,
                 printWidth: options.printwidth || 120,
                 singleQuote: true,
-                parser: "angular",
+                parser: "typescript",
               });
               stream.write(prettiered);
               stream.end();
