@@ -42,7 +42,7 @@
     "meow": "^13.2.0",
     "meshoptimizer": "^0.21.0",
     "sharp": "^0.33.5",
-    "three": "^0.148.0",
+    "three": "0.122.0",
     "three-stdlib": "^2.21.8"
   },
   "devDependencies": {
