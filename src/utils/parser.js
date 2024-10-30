@@ -547,8 +547,8 @@ function parse(fileName, gltf, options = {}) {
   const imports = `
 	    import type * as THREE from 'three'
         import { Group } from 'three'
-        import { NgtGroup, NgtObjectEvents, NgtObjectEventsHostDirective${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
-        import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, computed, viewChild, ElementRef, inject, effect${hasAnimations ? ", model" : ""} } from '@angular/core';
+        import { NgtGroup, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
+        import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
         import { GLTF } from 'three-stdlib';
         ${hasAnimations ? "import { injectAnimations } from 'angular-three-soba/misc';" : ""}
@@ -585,7 +585,27 @@ ${printTypes(objects, animations)}
     imports: [NgtArgs],`
         : ""
     }
-    hostDirectives: [NgtObjectEventsHostDirective],
+    hostDirectives: [
+      {
+        directive: NgtObjectEvents,
+        inputs: ['ngtObjectEvents'],
+        outputs: [
+          'click',
+          'dblclick',
+          'contextmenu',
+          'pointerup',
+          'pointerdown',
+          'pointerover',
+          'pointerout',
+          'pointerenter',
+          'pointerleave',
+          'pointermove',
+          'pointermissed',
+          'pointercancel',
+          'wheel',
+        ],
+      },
+    ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
