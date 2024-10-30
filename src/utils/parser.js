@@ -571,6 +571,7 @@ ${printTypes(objects, animations)}
 
 @Component({
     selector: '${selector}',
+    standalone: true,
     template: \`
         @if (gltf();as gltf) {
             <ngt-group #model [parameters]="options()">
