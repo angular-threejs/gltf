@@ -577,7 +577,7 @@ function parse(fileName, gltf, options = {}) {
   const imports = `
 	    import type * as THREE from 'three';
         import { Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} } from 'three';
-        import { extend, NgtGroup, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
+        import { extend, NgtGroup, NgtObjectEvents, NgtObjectEventsInputs, NgtObjectEventsOutputs${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
         import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
         import { GLTF } from 'three-stdlib';
@@ -634,22 +634,8 @@ ${printTypes(objects, animations)}
     hostDirectives: [
       {
         directive: NgtObjectEvents,
-        inputs: ['ngtObjectEvents'],
-        outputs: [
-          'click',
-          'dblclick',
-          'contextmenu',
-          'pointerup',
-          'pointerdown',
-          'pointerover',
-          'pointerout',
-          'pointerenter',
-          'pointerleave',
-          'pointermove',
-          'pointermissed',
-          'pointercancel',
-          'wheel',
-        ],
+        inputs: NgtObjectEventsInputs,
+        outputs: NgtObjectEventsOutputs,
       },
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
