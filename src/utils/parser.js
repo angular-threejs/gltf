@@ -6,7 +6,7 @@ function parse(fileName, gltf, options = {}) {
   const animations = gltf.animations;
   const hasAnimations = animations.length > 0;
   const selector = options.selector ?? "app-model";
-  const types = new Set();
+  const ngtTypes = new Set();
 
   // Collect all objects
   const objects = [];
@@ -144,13 +144,13 @@ function parse(fileName, gltf, options = {}) {
 
     // Turn object3d's into groups, it should be faster according to the threejs docs
     if (type === "object3D") {
-      types.add("Group");
+      ngtTypes.add("Group");
       type = "group";
     }
     if (type === "perspectiveCamera") type = "PerspectiveCamera";
     if (type === "orthographicCamera") type = "OrthographicCamera";
 
-    types.add(obj.type);
+    ngtTypes.add(obj.type);
 
     return type;
   }
@@ -560,21 +560,30 @@ function parse(fileName, gltf, options = {}) {
           }
         : undefined;
 
-  const typesArr = Array.from(types).filter(
+  const ngtTypesArr = Array.from(ngtTypes).filter(
     (t) =>
-      t !== "Group" && t !== "PerspectiveCamera" && t !== "OrthographicCamera",
+      // group always is the top-level object
+      t !== "Group" &&
+      // we render ngts-perspective-camera instead of ngt-perspective-camera
+      t !== "PerspectiveCamera" &&
+      // we render ngts-orthographic-camera instead of ngt-orthographic-camera
+      t !== "OrthographicCamera" &&
+      // we don't render ngt-bone
+      t !== "Bone" &&
+      // we don't render ngt-object3D
+      t !== "Object3D",
   );
 
   const imports = `
 	    import type * as THREE from 'three';
-        import { Group${typesArr.length ? ", " + typesArr.join(", ") : ""} } from 'three';
+        import { Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} } from 'three';
         import { extend, NgtGroup, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
         import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
         import { GLTF } from 'three-stdlib';
         ${hasAnimations ? "import { injectAnimations } from 'angular-three-soba/misc';" : ""}
-        ${types.has("PerspectiveCamera") ? "import { NgtsPerspectiveCamera } from 'angular-three-soba/cameras';" : ""}
-        ${types.has("OrthographicCamera") ? "import { NgtsOrthographicCamera } from 'angular-three-soba/cameras';" : ""}
+        ${ngtTypes.has("PerspectiveCamera") ? "import { NgtsPerspectiveCamera } from 'angular-three-soba/cameras';" : ""}
+        ${ngtTypes.has("OrthographicCamera") ? "import { NgtsOrthographicCamera } from 'angular-three-soba/cameras';" : ""}
 	`;
 
   const angularImports = [];
@@ -583,11 +592,11 @@ function parse(fileName, gltf, options = {}) {
     angularImports.push("NgtArgs");
   }
 
-  if (types.has("PerspectiveCamera")) {
+  if (ngtTypes.has("PerspectiveCamera")) {
     angularImports.push("NgtsPerspectiveCamera");
   }
 
-  if (types.has("OrthographicCamera")) {
+  if (ngtTypes.has("OrthographicCamera")) {
     angularImports.push("NgtsOrthographicCamera");
   }
 
@@ -669,7 +678,7 @@ export class Model {
     private objectEvents = inject(NgtObjectEvents, { host: true });
     
     constructor() {
-        extend({ Group${typesArr.length ? ", " + typesArr.join(", ") : ""} });
+        extend({ Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} });
     
         ${
           hasAnimations
