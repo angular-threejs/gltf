@@ -5,7 +5,8 @@ function parse(fileName, gltf, options = {}) {
   const url = fileName;
   const animations = gltf.animations;
   const hasAnimations = animations.length > 0;
-  const selector = `app-${options.selector ?? "model"}`;
+  const selector = options.selector ?? "app-model";
+  const types = new Set();
 
   // Collect all objects
   const objects = [];
@@ -140,10 +141,17 @@ function parse(fileName, gltf, options = {}) {
 
   function getType(obj) {
     let type = obj.type.charAt(0).toLowerCase() + obj.type.slice(1);
+
     // Turn object3d's into groups, it should be faster according to the threejs docs
-    if (type === "object3D") type = "group";
+    if (type === "object3D") {
+      types.add("Group");
+      type = "group";
+    }
     if (type === "perspectiveCamera") type = "PerspectiveCamera";
     if (type === "orthographicCamera") type = "OrthographicCamera";
+
+    types.add(obj.type);
+
     return type;
   }
 
@@ -422,6 +430,14 @@ function parse(fileName, gltf, options = {}) {
       return "ngt-object3D";
     }
 
+    if (type === "PerspectiveCamera") {
+      return `ngts-perspective-camera`;
+    }
+
+    if (type === "OrthographicCamera") {
+      return `ngts-orthographic-camera`;
+    }
+
     const kebabType = type.replace(/([A-Z])/g, "-$1").toLowerCase();
     return `ngt-${kebabType}`;
   }
@@ -544,15 +560,36 @@ function parse(fileName, gltf, options = {}) {
           }
         : undefined;
 
+  const typesArr = Array.from(types).filter(
+    (t) =>
+      t !== "Group" && t !== "PerspectiveCamera" && t !== "OrthographicCamera",
+  );
+
   const imports = `
-	    import type * as THREE from 'three'
-        import { Group } from 'three'
-        import { NgtGroup, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
+	    import type * as THREE from 'three';
+        import { Group${typesArr.length ? ", " + typesArr.join(", ") : ""} } from 'three';
+        import { extend, NgtGroup, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
         import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
         import { GLTF } from 'three-stdlib';
         ${hasAnimations ? "import { injectAnimations } from 'angular-three-soba/misc';" : ""}
+        ${types.has("PerspectiveCamera") ? "import { NgtsPerspectiveCamera } from 'angular-three-soba/cameras';" : ""}
+        ${types.has("OrthographicCamera") ? "import { NgtsOrthographicCamera } from 'angular-three-soba/cameras';" : ""}
 	`;
+
+  const angularImports = [];
+
+  if (hasArgs) {
+    angularImports.push("NgtArgs");
+  }
+
+  if (types.has("PerspectiveCamera")) {
+    angularImports.push("NgtsPerspectiveCamera");
+  }
+
+  if (types.has("OrthographicCamera")) {
+    angularImports.push("NgtsOrthographicCamera");
+  }
 
   // Output
   return `
@@ -580,9 +617,9 @@ ${printTypes(objects, animations)}
             </ngt-group>
         }
     \`,${
-      hasArgs
+      angularImports.length
         ? `
-    imports: [NgtArgs],`
+    imports: [${angularImports.join(", ")}],`
         : ""
     }
     hostDirectives: [
@@ -632,6 +669,8 @@ export class Model {
     private objectEvents = inject(NgtObjectEvents, { host: true });
     
     constructor() {
+        extend({ Group${typesArr.length ? ", " + typesArr.join(", ") : ""} });
+    
         ${
           hasAnimations
             ? `
