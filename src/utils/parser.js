@@ -7,6 +7,8 @@ function parse(fileName, gltf, options = {}) {
   const hasAnimations = animations.length > 0;
   const selector = options.selector ?? "app-model";
   const componentName = options.name ?? "Model";
+  const gltfAnimationTypeName = componentName + "AnimationClips";
+  const gltfResultTypeName = componentName + "GLTFResult";
   const ngtTypes = new Set();
 
   // Collect all objects
@@ -109,11 +111,11 @@ function parse(fileName, gltf, options = {}) {
     if (animations.length) {
       types.push(
         `type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(" | ")};
-        type GLTFAnimationClips = NgtsAnimationClips<ActionName>;`,
+        export type ${gltfAnimationTypeName} = NgtsAnimationClips<ActionName>;`,
       );
     }
 
-    types.push(`type GLTFResult = GLTF & {
+    types.push(`export type ${gltfResultTypeName} = GLTF & {
     nodes: {
       ${meshes
         .map(
@@ -583,7 +585,7 @@ function parse(fileName, gltf, options = {}) {
         import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
         import { GLTF } from 'three-stdlib';
-        ${hasAnimations ? "import { injectAnimations, NgtsAnimationClips } from 'angular-three-soba/misc';" : ""}
+        ${hasAnimations ? "import { injectAnimations, NgtsAnimationClips, NgtsAnimationApi } from 'angular-three-soba/misc';" : ""}
         ${ngtTypes.has("PerspectiveCamera") ? "import { NgtsPerspectiveCamera } from 'angular-three-soba/cameras';" : ""}
         ${ngtTypes.has("OrthographicCamera") ? "import { NgtsOrthographicCamera } from 'angular-three-soba/cameras';" : ""}
 	`;
@@ -647,10 +649,10 @@ export class ${componentName} {
     protected readonly Math = Math;
 
     options = input({} as Partial<NgtGroup>);
-    ${hasAnimations ? "animations = model<ReturnType<typeof injectAnimations<GLTFAnimationClips>>>();" : ""}
+    ${hasAnimations ? `animations = model<NgtsAnimationApi<${gltfAnimationTypeName}>>();` : ""}
     modelRef = viewChild<ElementRef<Group>>('model');
     
-    protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<GLTFResult | null>;
+    protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<${gltfResultTypeName} | null>;
     ${
       hasAnimations
         ? `
@@ -671,7 +673,7 @@ export class ${componentName} {
         ${
           hasAnimations
             ? `
-        const animations = injectAnimations(this.gltf, this.scene);
+        const animations = injectAnimations<${gltfAnimationTypeName}>(this.gltf, this.scene);
         effect(() => {
           if (animations.ready()) {
             this.animations.set(animations);
