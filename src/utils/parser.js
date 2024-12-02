@@ -116,6 +116,7 @@ function parse(fileName, gltf, options = {}) {
     }
 
     types.push(`export type ${gltfResultTypeName} = GLTF & {
+    ${animations.length ? `animations: ${gltfAnimationTypeName}[];` : ""}
     nodes: {
       ${meshes
         .map(
@@ -673,7 +674,7 @@ export class ${componentName} {
         ${
           hasAnimations
             ? `
-        const animations = injectAnimations<${gltfAnimationTypeName}>(this.gltf, this.scene);
+        const animations = injectAnimations(this.gltf, this.scene);
         effect(() => {
           if (animations.ready()) {
             this.animations.set(animations);

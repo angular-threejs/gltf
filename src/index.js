@@ -36,8 +36,8 @@ export default function (file, output, options) {
       } else {
         // Process GLTF
         if (options.transform || options.instance || options.instanceall) {
-          const { name } = path.parse(file);
-          const transformOut = path.join(name + "-transformed.glb");
+          const { name, dir } = path.parse(file);
+          const transformOut = path.join(dir, name + "-transformed.glb");
           await transform(file, transformOut, options);
           file = transformOut;
         }
