@@ -641,8 +641,21 @@ ${printTypes(objects, animations)}
     hostDirectives: [
       {
         directive: NgtObjectEvents,
-        inputs: NgtObjectEventsInputs,
-        outputs: NgtObjectEventsOutputs,
+        outputs: [ 
+          'click',
+          'dblclick',
+          'contextmenu',
+          'pointerup',
+          'pointerdown',
+          'pointerover',
+          'pointerout',
+          'pointerenter',
+          'pointerleave',
+          'pointermove',
+          'pointermissed',
+          'pointercancel',
+          'wheel',
+        ],
       },
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -667,9 +680,6 @@ export class ${componentName} {
         : ""
     }
     
-    
-    private objectEvents = inject(NgtObjectEvents, { host: true });
-    
     constructor() {
         extend({ Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} });
     
@@ -686,11 +696,12 @@ export class ${componentName} {
             : ""
         }
         
+        const objectEvents = inject(NgtObjectEvents, { host: true });
         effect(() => {
-            const modelRef = this.modelRef()?.nativeElement;
-            if (!modelRef) return;
+            const model = this.modelRef()?.nativeElement;
+            if (!model) return;
             
-            this.objectEvents.ngtObjectEvents.set(modelRef);
+            this.objectEvents.ngtObjectEvents.set(model);
         }, { allowSignalWrites: true });
     }
 }`;
