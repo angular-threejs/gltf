@@ -26,8 +26,8 @@ function toArrayBuffer(buf) {
 export default function (file, output, options) {
   function getFilePath(file) {
     // remove public from path. assuming that public is the assets root
-    if (file.includes("/public")) {
-      file = file.replace("/public", "");
+    if (file.includes("public/")) {
+      file = file.replace("public/", "");
     }
     return `${options.root ?? "/"}${options.root ? path.basename(file) : path.normalize(file)}`;
   }
