@@ -8,6 +8,7 @@ function parse(fileName, gltf, options = {}) {
   const selector = options.selector ?? "app-model";
   const componentName = options.name ?? "Model";
   const gltfAnimationTypeName = componentName + "AnimationClips";
+  const gltfAnimationApiTypeName = componentName + "AnimationApi";
   const gltfResultTypeName = componentName + "GLTFResult";
   const ngtTypes = new Set();
 
@@ -111,7 +112,8 @@ function parse(fileName, gltf, options = {}) {
     if (animations.length) {
       types.push(
         `type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(" | ")};
-        export type ${gltfAnimationTypeName} = NgtsAnimationClips<ActionName>;`,
+         type ${gltfAnimationTypeName} = NgtsAnimationClips<ActionName>;
+         export type ${gltfAnimationApiTypeName} = NgtsAnimationApi<${gltfAnimationTypeName}> | null;`,
       );
     }
 
@@ -650,7 +652,7 @@ export class ${componentName} {
     protected readonly Math = Math;
 
     options = input({} as Partial<NgtGroup>);
-    ${hasAnimations ? `animations = model<NgtsAnimationApi<${gltfAnimationTypeName}>>();` : ""}
+    ${hasAnimations ? `animations = model<${gltfAnimationApiTypeName}>();` : ""}
     modelRef = viewChild<ElementRef<Group>>('model');
     
     protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<${gltfResultTypeName} | null>;
