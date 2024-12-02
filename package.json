@@ -1,6 +1,6 @@
 {
   "name": "angular-three-gltf",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "GLTF to Angular Three converter",
   "scripts": {
     "cleanup": "rimraf node_modules"
