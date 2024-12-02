@@ -6,6 +6,7 @@ function parse(fileName, gltf, options = {}) {
   const animations = gltf.animations;
   const hasAnimations = animations.length > 0;
   const selector = options.selector ?? "app-model";
+  const componentName = options.name ?? "Model";
   const ngtTypes = new Set();
 
   // Collect all objects
@@ -107,7 +108,8 @@ function parse(fileName, gltf, options = {}) {
 
     if (animations.length) {
       types.push(
-        `type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(" | ")};`,
+        `type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(" | ")};
+        type GLTFAnimationClips = NgtsAnimationClips<ActionName>;`,
       );
     }
 
@@ -581,7 +583,7 @@ function parse(fileName, gltf, options = {}) {
         import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
         import { GLTF } from 'three-stdlib';
-        ${hasAnimations ? "import { injectAnimations } from 'angular-three-soba/misc';" : ""}
+        ${hasAnimations ? "import { injectAnimations, NgtsAnimationClips } from 'angular-three-soba/misc';" : ""}
         ${ngtTypes.has("PerspectiveCamera") ? "import { NgtsPerspectiveCamera } from 'angular-three-soba/cameras';" : ""}
         ${ngtTypes.has("OrthographicCamera") ? "import { NgtsOrthographicCamera } from 'angular-three-soba/cameras';" : ""}
 	`;
@@ -641,11 +643,11 @@ ${printTypes(objects, animations)}
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Model {
+export class ${componentName} {
     protected readonly Math = Math;
 
     options = input({} as Partial<NgtGroup>);
-    ${hasAnimations ? "animations = model<any>();" : ""}
+    ${hasAnimations ? "animations = model<ReturnType<typeof injectAnimations<GLTFAnimationClips>>>();" : ""}
     modelRef = viewChild<ElementRef<Group>>('model');
     
     protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<GLTFResult | null>;

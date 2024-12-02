@@ -18,6 +18,7 @@ const cli = meow(
   Options
     --output, -o        Output file name/path
     --selector          Selector for the component
+    --name, -n          Name of the component
     --keepnames, -k     Keep original names
     --keepgroups, -K    Keep (empty) groups, disable pruning
     --meta, -m          Include metadata (as userData)
@@ -40,6 +41,7 @@ const cli = meow(
     flags: {
       output: { type: "string", shortFlag: "o" },
       selector: { type: "string" },
+      name: { type: "string" },
       types: { type: "boolean", shortFlag: "t" },
       keepnames: { type: "boolean", shortFlag: "k" },
       keepgroups: { type: "boolean", shortFlag: "K" },
