@@ -86,7 +86,11 @@ let ngVer;
 console.log(cwdPackageJson);
 
 if (cwdPackageJson.dependencies["@angular/core"]) {
-  const parsed = parse(cwdPackageJson.dependencies["@angular/core"], false);
+  const parsed = parse(
+    cwdPackageJson.dependencies["@angular/core"],
+    false,
+    true,
+  );
   ngVer = parsed.major;
 
   if (ngVer < 18) {
