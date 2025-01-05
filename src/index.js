@@ -49,6 +49,18 @@ export default function (file, output, options) {
     return relativePath;
   }
 
+  function getTransformOutput(output, file) {
+    const { name, dir } = path.parse(path.resolve(file));
+
+    // default angular's assets directory
+    if (file.includes("public")) {
+      return path.join(dir, name + "-transformed.glb");
+    }
+
+    const outputDir = path.parse(path.resolve(output ?? file)).dir;
+    return path.join(outputDir, name + "-transformed.glb");
+  }
+
   // function getFilePath(file) {
   //   // remove public from path. assuming that public is the assets root
   //   if (file.includes("public/")) {
@@ -62,11 +74,10 @@ export default function (file, output, options) {
       let size = "";
 
       if (options.transform || options.instance || options.instanceall) {
-        const { name } = path.parse(file);
-        const outputDir = path.parse(path.resolve(output ?? file)).dir;
-        const transformOut = path.join(outputDir, name + "-transformed.glb");
-
-        console.log({ file, name, outputDir, transformOut });
+        const transformOut = getTransformOutput(output, file);
+        console.warn(
+          `Transform output ${transformOut} might not work for you. Move the file manually if needed.`,
+        );
 
         await transform(file, transformOut, options);
         const { size: sizeOriginal, sizeKB: sizeKBOriginal } =
