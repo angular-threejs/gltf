@@ -83,14 +83,14 @@ const { packageJson } = readPackageUpSync({ cwd: __dirname });
 
 let ngVer;
 
-console.log(cwdPackageJson);
-
 if (cwdPackageJson.dependencies["@angular/core"]) {
-  const parsed = parse(
-    cwdPackageJson.dependencies["@angular/core"],
-    false,
-    true,
-  );
+  let ngRawVersion = cwdPackageJson.dependencies["@angular/core"];
+  if (ngRawVersion.includes("^") || ngRawVersion.includes("~")) {
+    // remove first character
+    ngRawVersion = ngRawVersion.slice(1);
+  }
+
+  const parsed = parse(ngRawVersion);
   ngVer = parsed.major;
 
   if (ngVer < 18) {
