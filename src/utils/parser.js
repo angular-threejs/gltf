@@ -662,7 +662,12 @@ ${options.preload ? `injectGLTF.preload(() => ${url})` : ""}
 ${printTypes(objects, animations)}
 
 @Component({
-    selector: '${selector}',
+    selector: '${selector}',${
+      options.ngVer < 19
+        ? `
+    standalone: true,`
+        : ""
+    }
     template: \`
         @if (gltf();as gltf) {
             <ngt-group #model [parameters]="options()">
@@ -729,7 +734,7 @@ export class ${componentName} {
           if (animations.ready()) {
             this.animations.set(animations);
           }
-        })
+        }${options.ngVer < 19 ? ", { allowSignalWrites: true }" : ""})
         `
             : ""
         }
@@ -740,7 +745,7 @@ export class ${componentName} {
             if (!model) return;
             
             objectEvents.ngtObjectEvents.set(model);
-        });
+        }${options.ngVer < 19 ? ", { allowSignalWrites: true }" : ""});
     }
 }`;
 }
