@@ -2,7 +2,12 @@ import THREE from "three";
 import isVarName from "./isVarName.js";
 
 function parse(fileName, gltf, options = {}) {
-  const url = fileName;
+  if (gltf.isObject3D) {
+    // Wrap scene in a GLTF Structure
+    gltf = { scene: gltf, animations: [], parser: { json: {} } };
+  }
+
+  const url = (fileName.toLowerCase().startsWith("http") ? "" : "/") + fileName;
   const animations = gltf.animations;
   const hasAnimations = animations.length > 0;
   const selector = options.selector ?? "app-model";
@@ -197,6 +202,10 @@ function parse(fileName, gltf, options = {}) {
         else result += `[material]="gltf.${node}.material" `;
       }
 
+      if (obj.instanceMatrix)
+        result += `[instanceMatrix]="gltf.${node}.instanceMatrix" `;
+      if (obj.instanceColor)
+        result += `[instanceColor]="gltf.${node}.instanceColor" `;
       if (obj.skeleton) result += `[skeleton]="gltf.${node}.skeleton" `;
       if (obj.visible === false) result += `[visible]="false" `;
       if (obj.castShadow === true) result += `[castShadow]="true" `;
@@ -296,7 +305,8 @@ function parse(fileName, gltf, options = {}) {
        *    <ngt-mesh [geometry]="nodes.foo" [material]="materials.bar" />
        */
       if (result === oldResult || obj.children.length === 0) {
-        if (!silent) console.log(`group ${obj.name} removed (empty)`);
+        if (options.debug && !silent)
+          console.log(`group ${obj.name} removed (empty)`);
         obj.__removed = true;
         return children;
       }
@@ -327,7 +337,7 @@ function parse(fileName, gltf, options = {}) {
           keys1[0] === "rotation" &&
           keys2[0] === "rotation"
         ) {
-          if (!silent)
+          if (options.debug && !silent)
             console.log(
               `group ${obj.name} removed (aggressive: double negative rotation)`,
             );
@@ -360,7 +370,7 @@ function parse(fileName, gltf, options = {}) {
           keys1[0] === "rotation" &&
           keys2.includes("rotation")
         ) {
-          if (!silent)
+          if (options.debug && !silent)
             console.log(
               `group ${obj.name} removed (aggressive: double negative rotation w/ props)`,
             );
@@ -391,7 +401,7 @@ function parse(fileName, gltf, options = {}) {
         !isChildTransformed &&
         !hasOtherProps
       ) {
-        if (!silent)
+        if (options.debug && !silent)
           console.log(
             `group ${obj.name} removed (aggressive: ${keys1.join(" ")} overlap)`,
           );
@@ -417,7 +427,7 @@ function parse(fileName, gltf, options = {}) {
         if (type !== "group" && type !== "object3D") empty.push(o);
       });
       if (!empty.length) {
-        if (!silent)
+        if (options.debug && !silent)
           console.log(
             `group ${obj.name} removed (aggressive: lack of content)`,
           );
@@ -461,10 +471,23 @@ function parse(fileName, gltf, options = {}) {
       return result;
     }
 
-    // Bail out on lights and bones
-    if (type === "bone") {
+    // Bail out on bones
+    if (!options.bones && type === "bone") {
       hasArgs = true;
       return `<ngt-primitive *args=[gltf.${node}] />\n`;
+    }
+
+    // Take care of lights with targets
+    if (
+      type.endsWith("Light") &&
+      obj.target &&
+      obj.children[0] === obj.target
+    ) {
+      hasArgs = true;
+      const lightType = getAngularThreeElement(type);
+      return `<${lightType} ${handleAngularInputs(obj)} [target]="gltf.${node}.target">
+        <ngt-primitive *args="[gltf.${node}.target]" ${handleAngularInputs(obj.target)} />
+        </${lightType}>`;
     }
 
     // Collect children
@@ -473,7 +496,24 @@ function parse(fileName, gltf, options = {}) {
 
     // TODO: Instances are currently not supported for NGT components
 
-    result = `<${getAngularThreeElement(type)} `;
+    if (obj.isInstancedMesh) {
+      const geo = `gltf.${node}.geometry`;
+      const mat = obj.material.name
+        ? `gltf.materials${sanitizeName(obj.material.name)}`
+        : `gltf.${node}.material`;
+      type = "instancedMesh";
+      hasArgs = true;
+      result = `<ngt-instanced-mesh *args="[${geo}, ${mat}, ${!obj.count ? `gltf.${node}.count` : obj.count}]" `;
+    } else {
+      // Form the object in JSX syntax
+
+      if (type === "bone") {
+        hasArgs = true;
+        result = `<ngt-primitive *args="[gltf.${node}]" `;
+      } else {
+        result = `<${getAngularThreeElement(type)} `;
+      }
+    }
 
     // Include names when output is uncompressed or morphTargetDictionaries are present
     if (
@@ -493,8 +533,11 @@ function parse(fileName, gltf, options = {}) {
     result += `${children.length ? ">" : "/>"}\n`;
 
     // Add children and return
-    if (children.length)
-      result += children + `\n</${getAngularThreeElement(type)}>\n`;
+    if (children.length) {
+      if (type === "bone") result += children + `\n</ngt-primitive>\n`;
+      else result += children + `\n</${getAngularThreeElement(type)}>\n`;
+    }
+
     return result;
   }
 
@@ -558,13 +601,9 @@ function parse(fileName, gltf, options = {}) {
 
   const gltfOptions =
     options.transform && options.draco
-      ? {
-          useDraco: options.draco,
-        }
+      ? { useDraco: options.draco }
       : options.transform
-        ? {
-            useDraco: true,
-          }
+        ? { useDraco: true }
         : undefined;
 
   const ngtTypesArr = Array.from(ngtTypes).filter(
@@ -624,7 +663,6 @@ ${printTypes(objects, animations)}
 
 @Component({
     selector: '${selector}',
-    standalone: true,
     template: \`
         @if (gltf();as gltf) {
             <ngt-group #model [parameters]="options()">
@@ -691,7 +729,7 @@ export class ${componentName} {
           if (animations.ready()) {
             this.animations.set(animations);
           }
-        }, { allowSignalWrites: true })
+        })
         `
             : ""
         }
@@ -702,7 +740,7 @@ export class ${componentName} {
             if (!model) return;
             
             this.objectEvents.ngtObjectEvents.set(model);
-        }, { allowSignalWrites: true });
+        });
     }
 }`;
 }

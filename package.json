@@ -1,6 +1,6 @@
 {
   "name": "angular-three-gltf",
-  "version": "1.0.17",
+  "version": "1.1.0",
   "description": "GLTF to Angular Three converter",
   "scripts": {
     "cleanup": "rimraf node_modules"
@@ -34,26 +34,27 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@gltf-transform/core": "^4.0.9",
-    "@gltf-transform/extensions": "^4.0.9",
-    "@gltf-transform/functions": "^4.0.9",
+    "@gltf-transform/core": "^4.1.1",
+    "@gltf-transform/extensions": "^4.1.1",
+    "@gltf-transform/functions": "^4.1.1",
     "@node-loader/babel": "^2.1.0",
-    "chalk": "^5.3.0",
+    "chalk": "^5.4.1",
     "draco3dgltf": "^1.5.7",
-    "fast-glob": "^3.3.2",
+    "fast-glob": "^3.3.3",
     "fs-extra": "^11.2.0",
     "jsdom": "^25.0.1",
     "jsdom-global": "^3.0.2",
+    "keyframe-resample": "^0.1.0",
     "meow": "^13.2.0",
-    "meshoptimizer": "^0.21.0",
-    "prettier": "^3.3.3",
+    "meshoptimizer": "^0.22.0",
+    "prettier": "^3.4.2",
     "read-pkg-up": "^11.0.0",
     "sharp": "^0.33.5",
     "three": "0.122.0",
-    "three-stdlib": "^2.21.8"
+    "three-stdlib": "^2.35.2"
   },
   "devDependencies": {
-    "lint-staged": "^15.2.10",
+    "lint-staged": "^15.3.0",
     "prettier-plugin-organize-imports": "^4.1.0",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.11.1"

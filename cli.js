@@ -21,6 +21,7 @@ const cli = meow(
     --name, -n          Name of the component
     --keepnames, -k     Keep original names
     --keepgroups, -K    Keep (empty) groups, disable pruning
+    --bones, -b         Layout bones declaratively (default: false)
     --meta, -m          Include metadata (as userData)
     --shadows, -s       Let meshes cast and receive shadows
     --printwidth, -w    Prettier printWidth (default: 120)
@@ -29,11 +30,14 @@ const cli = meow(
     --preload -P        Add preload method to module script
     --root, -r          Sets directory from which .gltf file is served
     --transform, -T     Transform the asset for the web (draco, prune, resize)
-      --resolution, -R  Transform resolution for texture resizing (default: 1024)
-      --simplify, -S    Transform simplification (default: false) (experimental!)
-        --weld          Weld tolerance (default: 0.0001)
-        --ratio         Simplifier ratio (default: 0.75)
-        --error         Simplifier error threshold (default: 0.001)
+      --resolution, -R  Resolution for texture resizing (default: 1024)
+      --keepmeshes, -j  Do not join compatible meshes
+      --keepmaterials, -M Do not palette join materials
+      --format, -f      Texture format (default: "webp")
+      --simplify, -S    Mesh simplification (default: false)
+        --ratio         Simplifier ratio (default: 0)
+        --error         Simplifier error threshold (default: 0.0001)
+    --console, -c       Log component to console, won't produce a file
     --debug, -D         Debug output
 `,
   {
@@ -42,24 +46,31 @@ const cli = meow(
       output: { type: "string", shortFlag: "o" },
       selector: { type: "string" },
       name: { type: "string" },
-      types: { type: "boolean", shortFlag: "t" },
       keepnames: { type: "boolean", shortFlag: "k" },
       keepgroups: { type: "boolean", shortFlag: "K" },
+      bones: { type: "boolean", shortFlag: "b", default: false },
       shadows: { type: "boolean", shortFlag: "s" },
       printwidth: { type: "number", shortFlag: "p", default: 120 },
       meta: { type: "boolean", shortFlag: "m" },
-      precision: { type: "number", shortFlag: "p", default: 2 },
-      isolated: { type: "boolean", shortFlag: "i", default: false },
+      precision: { type: "number", shortFlag: "p", default: 3 },
       preload: { type: "boolean", shortFlag: "P", default: false },
       draco: { type: "string", shortFlag: "d" },
       root: { type: "string", shortFlag: "r" },
       transform: { type: "boolean", shortFlag: "T" },
       resolution: { type: "number", shortFlag: "R", default: 1024 },
+      degrade: { type: "string", shortFlag: "q", default: "" },
+      degraderesolution: { type: "number", shortFlag: "Q", default: 512 },
       simplify: { type: "boolean", shortFlag: "S", default: false },
-      weld: { type: "number", default: 0.0001 },
+      keepmeshes: { type: "boolean", shortFlag: "j", default: false },
+      keepmaterials: { type: "boolean", shortFlag: "M", default: false },
       ratio: { type: "number", default: 0.75 },
       error: { type: "number", default: 0.001 },
       debug: { type: "boolean", shortFlag: "D" },
+      format: { type: "string", shortFlag: "f", default: "webp" },
+      console: { type: "boolean", shortFlag: "c" },
+
+      // instance: { type: "boolean", shortFlag: "i" },
+      // instanceall: { type: "boolean", shortFlag: "I" },
     },
   },
 );
@@ -70,7 +81,8 @@ if (cli.input.length === 0) {
   console.log(cli.help);
 } else {
   const file = cli.input[0];
-  let nameExt = file.match(/[-_\w]+[.]\w+$/i)[0];
+
+  let nameExt = file.match(/[-_\w\d\s]+[.][\w]+$/i)[0];
   let name = nameExt.split(".").slice(0, -1).join(".");
   let output = name + ".ts";
 
