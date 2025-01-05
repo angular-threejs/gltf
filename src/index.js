@@ -61,14 +61,6 @@ export default function (file, output, options) {
     return path.join(outputDir, name + "-transformed.glb");
   }
 
-  // function getFilePath(file) {
-  //   // remove public from path. assuming that public is the assets root
-  //   if (file.includes("public/")) {
-  //     file = file.replace("public/", "");
-  //   }
-  //   return `${options.root ?? "/"}${options.root ? path.basename(file) : path.normalize(file)}`;
-  // }
-
   return new Promise((resolve, reject) => {
     async function run(stream) {
       let size = "";
@@ -106,7 +98,7 @@ export default function (file, output, options) {
               bracketSameLine: true,
               printWidth: options.printwidth || 120,
               singleQuote: true,
-              parser: "angular",
+              parser: "typescript",
             });
           } catch {
             // prettier error; do nothing
