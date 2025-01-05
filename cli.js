@@ -83,6 +83,8 @@ const { packageJson } = readPackageUpSync({ cwd: __dirname });
 
 let ngVer;
 
+console.log(cwdPackageJson);
+
 if (cwdPackageJson.dependencies["@angular/core"]) {
   const parsed = parse(cwdPackageJson.dependencies["@angular/core"]);
   ngVer = parsed.major;
