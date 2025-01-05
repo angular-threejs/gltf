@@ -75,6 +75,8 @@ const cli = meow(
   },
 );
 
+console.log("dirname", __dirname);
+
 const { packageJson } = readPackageUpSync({ cwd: __dirname });
 
 if (cli.input.length === 0) {
