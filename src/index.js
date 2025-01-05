@@ -65,6 +65,9 @@ export default function (file, output, options) {
         const { name } = path.parse(file);
         const outputDir = path.parse(path.resolve(output ?? file)).dir;
         const transformOut = path.join(outputDir, name + "-transformed.glb");
+
+        console.log({ file, name, outputDir, transformOut });
+
         await transform(file, transformOut, options);
         const { size: sizeOriginal, sizeKB: sizeKBOriginal } =
           getFileSize(file);
@@ -84,7 +87,7 @@ export default function (file, output, options) {
         arrayBuffer,
         "",
         async (gltf) => {
-          let output = parse(filePath, gltf, options);
+          let output = parse(filePath, gltf, { ...options, size });
 
           try {
             output = await prettier.format(output, {
