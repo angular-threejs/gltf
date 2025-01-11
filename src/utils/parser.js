@@ -15,6 +15,9 @@ function parse(fileName, gltf, options = {}) {
   const gltfAnimationTypeName = componentName + "AnimationClips";
   const gltfAnimationApiTypeName = componentName + "AnimationApi";
   const gltfResultTypeName = componentName + "GLTFResult";
+  const useNewAnimationApi =
+    options.ngtVer?.major >= 4 ||
+    (options.ngtVer?.major === 3 && options.ngtVer?.minor >= 5);
   const ngtTypes = new Set();
 
   // Collect all objects
@@ -118,7 +121,7 @@ function parse(fileName, gltf, options = {}) {
       types.push(
         `type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(" | ")};
          type ${gltfAnimationTypeName} = NgtsAnimationClips<ActionName>;
-         export type ${gltfAnimationApiTypeName} = NgtsAnimationApi<${gltfAnimationTypeName}> | null;`,
+         export type ${gltfAnimationApiTypeName} = ${useNewAnimationApi ? `Exclude<NgtsAnimationApi<${gltfAnimationTypeName}>, { get isReady(): false }>` : `NgtsAnimationApi<${gltfAnimationTypeName}>`} | null;`,
       );
     }
 
@@ -725,7 +728,7 @@ export class ${componentName} {
             ? `
         const animations = injectAnimations(this.gltf, this.modelRef);
         effect(() => {
-          if (animations.ready()) {
+          if (animations.${useNewAnimationApi ? "isReady" : "ready()"}) {
             this.animations.set(animations);
           }
         }${options.ngVer < 19 ? ", { allowSignalWrites: true }" : ""})
