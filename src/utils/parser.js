@@ -175,14 +175,17 @@ function parse(fileName, gltf, options = {}) {
       type === "PerspectiveCamera" || type === "OrthographicCamera";
     // Handle cameras
     if (isCamera) {
-      result += `[makeDefault]="false" `;
-      if (obj.zoom !== 1) result += `[zoom]="${rNbr(obj.zoom)}" `;
-      if (obj.far !== 2000) result += `[far]="${rNbr(obj.far)}" `;
-      if (obj.near !== 0.1) result += `[near]="${rNbr(obj.near)}" `;
-    }
+      let options = `[options]="{ makeDefault: false `;
+      if (obj.zoom !== 1) options += `, zoom: ${rNbr(obj.zoom)}`;
+      if (obj.far !== 2000) options += `, far: ${rNbr(obj.far)}`;
+      if (obj.near !== 0.1) options += `, near: ${rNbr(obj.near)}`;
 
-    if (type === "PerspectiveCamera") {
-      if (obj.fov !== 50) result += `[fov]="${rNbr(obj.fov)}" `;
+      if (type === "PerspectiveCamera" && obj.fov !== 50) {
+        options += `, fov: ${rNbr(obj.fov)}`;
+      }
+
+      options += ' }"';
+      result += options;
     }
 
     if (!instanced) {
@@ -657,7 +660,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}**/
 
 ${imports}
 
-${options.preload ? `injectGLTF.preload(() => ${url})` : ""}
+${options.preload ? `injectGLTF.preload(() => "${url}")` : ""}
 
 ${printTypes(objects, animations)}
 
@@ -670,8 +673,9 @@ ${printTypes(objects, animations)}
     }
     template: \`
         @if (gltf();as gltf) {
-            <ngt-group #model [parameters]="options()">
+            <ngt-group #model [parameters]="options()" [dispose]="null">
                 ${scene}
+
                 <ng-content />
             </ngt-group>
         }
@@ -711,17 +715,7 @@ export class ${componentName} {
     ${hasAnimations ? `animations = model<${gltfAnimationApiTypeName}>();` : ""}
     modelRef = viewChild<ElementRef<Group>>('model');
     
-    protected gltf = injectGLTF(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""}) as unknown as Signal<${gltfResultTypeName} | null>;
-    ${
-      hasAnimations
-        ? `
-    private scene = computed(() => {
-        const gltf = this.gltf();
-        if (!gltf) return null;
-        return gltf.scene;
-    });`
-        : ""
-    }
+    protected gltf = injectGLTF<${gltfResultTypeName}>(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""});
     
     constructor() {
         extend({ Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} });
@@ -729,7 +723,7 @@ export class ${componentName} {
         ${
           hasAnimations
             ? `
-        const animations = injectAnimations(this.gltf, this.scene);
+        const animations = injectAnimations(this.gltf, this.modelRef);
         effect(() => {
           if (animations.ready()) {
             this.animations.set(animations);
