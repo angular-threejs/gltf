@@ -194,7 +194,7 @@ function parse(fileName, gltf, options = {}) {
     if (!instanced) {
       // Shadows
       if ((type === "mesh" || type === "skinnedMesh") && options.shadows)
-        result += `[castShadow]="true" [receiveShadow]="true" `;
+        result += `castShadow receiveShadow `;
 
       // Write out geometry first
       if (obj.geometry) {
@@ -214,8 +214,8 @@ function parse(fileName, gltf, options = {}) {
         result += `[instanceColor]="gltf.${node}.instanceColor" `;
       if (obj.skeleton) result += `[skeleton]="gltf.${node}.skeleton" `;
       if (obj.visible === false) result += `[visible]="false" `;
-      if (obj.castShadow === true) result += `[castShadow]="true" `;
-      if (obj.receiveShadow === true) result += `[receiveShadow]="true" `;
+      if (obj.castShadow === true) result += `castShadow `;
+      if (obj.receiveShadow === true) result += `receiveShadow `;
       if (obj.morphTargetDictionary)
         result += `[morphTargetDictionary]="gltf.${node}.morphTargetDictionary" `;
       if (obj.morphTargetInfluences)
