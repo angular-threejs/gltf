@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 const parseVersion = (pkgJson, dep, cbs = {}) => {
   if (pkgJson.dependencies[dep]) {
     let raw = cwdPackageJson.dependencies[dep];
-    if (raw.includes("^") || ngRawVersion.includes("~")) {
+    if (raw.includes("^") || raw.includes("~")) {
       // remove first character
       raw = raw.slice(1);
     }
