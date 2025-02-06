@@ -14,13 +14,20 @@ const __dirname = dirname(__filename);
 const parseVersion = (pkgJson, dep, cbs = {}) => {
   if (pkgJson.dependencies[dep]) {
     let raw = cwdPackageJson.dependencies[dep];
-    if (raw.includes("^") || raw.includes("~")) {
-      // remove first character
-      raw = raw.slice(1);
-    }
+    let parsed;
+    let major;
+    if (["latest", "next", "alpha", "beta"].includes(raw)) {
+      major = raw;
+      parsed = { major: raw, version: raw };
+    } else {
+      if (raw.includes("^") || raw.includes("~")) {
+        // remove first character
+        raw = raw.slice(1);
+      }
 
-    const parsed = parse(raw);
-    const major = parsed.major;
+      parsed = parse(raw);
+      major = parsed.major;
+    }
 
     cbs.afterParse?.(major, parsed);
     return parsed;
