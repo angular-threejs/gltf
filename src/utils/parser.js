@@ -14,7 +14,8 @@ function parse(fileName, gltf, options = {}) {
   const componentName = options.name ?? "Model";
   const gltfAnimationTypeName = componentName + "AnimationClips";
   const gltfAnimationApiTypeName = componentName + "AnimationApi";
-  const gltfResultTypeName = componentName + "GLTFResult";
+  const gltfName = componentName + "GLTF";
+  const gltfResultTypeName = gltfName + "GLTFResult";
   const useNewAnimationApi =
     options.ngtVer?.major >= 4 ||
     (options.ngtVer?.major === 3 && options.ngtVer?.minor >= 5);
@@ -629,13 +630,19 @@ function parse(fileName, gltf, options = {}) {
   const imports = `
 	    import type * as THREE from 'three';
         import { Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} } from 'three';
-        import { extend, NgtThreeElements, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
-        import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
+        import { extend, type NgtThreeElements, NgtObjectEvents${hasArgs ? ", NgtArgs" : ""} } from 'angular-three';
+        import { Component, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, type Signal, input, viewChild, ElementRef, inject, effect${hasAnimations ? ", computed, model" : ""} } from '@angular/core';
         import { injectGLTF } from 'angular-three-soba/loaders';
-        import { GLTF } from 'three-stdlib';
+        import type { GLTF } from 'three-stdlib';
         ${hasAnimations ? "import { injectAnimations, NgtsAnimationClips, NgtsAnimationApi } from 'angular-three-soba/misc';" : ""}
         ${ngtTypes.has("PerspectiveCamera") ? "import { NgtsPerspectiveCamera } from 'angular-three-soba/cameras';" : ""}
         ${ngtTypes.has("OrthographicCamera") ? "import { NgtsOrthographicCamera } from 'angular-three-soba/cameras';" : ""}
+        ${
+          options.importattribute && !url.startsWith("http")
+            ? `// @ts-expect-error - import .glb/.gltf file
+import ${gltfName} from '.${url}' with { loader: 'file' };`
+            : ""
+        }
 	`;
 
   const angularImports = [];
@@ -718,7 +725,7 @@ export class ${componentName} {
     ${hasAnimations ? `animations = model<${gltfAnimationApiTypeName}>();` : ""}
     modelRef = viewChild<ElementRef<Group>>('model');
     
-    protected gltf = injectGLTF<${gltfResultTypeName}>(() => "${url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""});
+    protected gltf = injectGLTF<${gltfResultTypeName}>(() => "${options.importattribute && !url.startsWith("http") ? gltfName : url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""});
     
     constructor() {
         extend({ Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} });

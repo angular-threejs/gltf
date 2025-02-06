@@ -55,6 +55,7 @@ const cli = meow(
     --draco, -d         Draco binary path
     --preload -P        Add preload method to module script
     --root, -r          Sets directory from which .gltf file is served
+    --importattribute  Use import attribute to load gltf (default: false)
     --transform, -T     Transform the asset for the web (draco, prune, resize)
       --resolution, -R  Resolution for texture resizing (default: 1024)
       --keepmeshes, -j  Do not join compatible meshes
@@ -82,6 +83,7 @@ const cli = meow(
       preload: { type: "boolean", shortFlag: "P", default: false },
       draco: { type: "string", shortFlag: "d" },
       root: { type: "string", shortFlag: "r" },
+      importattribute: { type: "boolean", default: false },
       transform: { type: "boolean", shortFlag: "T" },
       resolution: { type: "number", shortFlag: "R", default: 1024 },
       degrade: { type: "string", shortFlag: "q", default: "" },
