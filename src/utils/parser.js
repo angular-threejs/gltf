@@ -725,7 +725,7 @@ export class ${componentName} {
     ${hasAnimations ? `animations = model<${gltfAnimationApiTypeName}>();` : ""}
     modelRef = viewChild<ElementRef<Group>>('model');
     
-    protected gltf = injectGLTF<${gltfResultTypeName}>(() => "${options.importattribute && !url.startsWith("http") ? gltfName : url}"${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""});
+    protected gltf = injectGLTF<${gltfResultTypeName}>(() => ${options.importattribute && !url.startsWith("http") ? gltfName : `"${url}"`}${gltfOptions ? `, ${JSON.stringify(gltfOptions)}` : ""});
     
     constructor() {
         extend({ Group${ngtTypesArr.length ? ", " + ngtTypesArr.join(", ") : ""} });
