@@ -321,7 +321,7 @@ function parse(fileName, gltf, options = {}) {
       // More aggressive removal strategies ...
       const first = obj.children[0];
       const firstProps = handleAngularInputs(first);
-      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g;
+      const regex = /\[([a-z-A-Z]*)\]=\"([a-zA-Z0-9\.\[\]\-\,\ \/]*)\"/g;
       const keys1 = [...result.matchAll(regex)].map(([, match]) => match);
       const values1 = [...result.matchAll(regex)].map(([, , match]) => match);
       const keys2 = [...firstProps.matchAll(regex)].map(([, match]) => match);
